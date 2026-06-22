@@ -239,7 +239,7 @@ function drawFooter(ctx: CanvasRenderingContext2D, H: number) {
   ctx.fillStyle = C.muted
   ctx.font = `500 12px ${FONT}`
   ctx.textAlign = 'center'
-  ctx.fillText('Made with Share trip costs', W / 2, H - PAD)
+  ctx.fillText('Made with Share trip costs · Bam Kadayat', W / 2, H - PAD)
   ctx.textAlign = 'left'
 }
 
