@@ -1,12 +1,16 @@
 import { useState } from 'react'
 import type { Expense, Participant, ParticipantType } from '../types'
-import { MAX_AMOUNT, MIN_AMOUNT } from '../types'
+import { MAX_AMOUNT, MAX_MEMBERS, MIN_AMOUNT, MIN_MEMBERS } from '../types'
 import { formatNOK } from '../lib/settle'
 
 interface Props {
   participants: Participant[]
   expenses: Expense[]
-  addParticipant: (type: ParticipantType, name: string) => void
+  addParticipant: (
+    type: ParticipantType,
+    name: string,
+    members?: number,
+  ) => void
   removeParticipant: (id: string) => void
   addExpense: (participantId: string, amount: number, description: string) => void
   removeExpense: (id: string) => void
@@ -22,6 +26,8 @@ export default function ParticipantsPanel({
 }: Props) {
   const [type, setType] = useState<ParticipantType>('person')
   const [name, setName] = useState('')
+  const [members, setMembers] = useState('2')
+  const [nameError, setNameError] = useState('')
 
   // Shared "add an expense" form.
   const [payerId, setPayerId] = useState('')
@@ -31,8 +37,23 @@ export default function ParticipantsPanel({
 
   const submitParticipant = () => {
     if (!name.trim()) return
-    addParticipant(type, name)
+    let count = 1
+    if (type === 'family') {
+      count = Number(members)
+      if (
+        members.trim() === '' ||
+        !Number.isInteger(count) ||
+        count < MIN_MEMBERS ||
+        count > MAX_MEMBERS
+      ) {
+        setNameError(`Enter members (${MIN_MEMBERS}–${MAX_MEMBERS}).`)
+        return
+      }
+    }
+    addParticipant(type, name, count)
     setName('')
+    setMembers('2')
+    setNameError('')
   }
 
   const submitExpense = () => {
@@ -91,19 +112,47 @@ export default function ParticipantsPanel({
               type === 'family' ? 'Family name, e.g. Hansen' : 'Name, e.g. Ola'
             }
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => {
+              setName(e.target.value)
+              if (nameError) setNameError('')
+            }}
             onKeyDown={(e) => e.key === 'Enter' && submitParticipant()}
           />
+          {type === 'family' && (
+            <input
+              className="input input--members"
+              type="number"
+              min={MIN_MEMBERS}
+              max={MAX_MEMBERS}
+              step="1"
+              aria-label="Number of family members"
+              title="Number of family members"
+              placeholder="members"
+              value={members}
+              onChange={(e) => {
+                setMembers(e.target.value)
+                if (nameError) setNameError('')
+              }}
+              onKeyDown={(e) => e.key === 'Enter' && submitParticipant()}
+            />
+          )}
           <button className="btn btn--primary" onClick={submitParticipant}>
             Add
           </button>
         </div>
+        {type === 'family' && (
+          <p className="form-hint">How many people are in this family?</p>
+        )}
+        {nameError && <p className="field-error">{nameError}</p>}
 
         {participants.length > 0 && (
           <ul className="member-list">
             {participants.map((p) => (
               <li key={p.id} className="chip">
                 {p.name}
+                {p.type === 'family' && (p.members ?? 1) > 1 && (
+                  <span className="chip__count">{p.members}</span>
+                )}
                 <button
                   className="chip__x"
                   aria-label={`Remove ${p.name}`}

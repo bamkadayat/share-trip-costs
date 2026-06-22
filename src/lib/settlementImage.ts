@@ -108,6 +108,15 @@ export function drawSettlementCanvas(s: Settlement): HTMLCanvasElement {
   ctx.fillText(dateStr, W - PAD, y + 4)
   ctx.textAlign = 'left'
 
+  // Split-mode subtitle.
+  ctx.fillStyle = C.muted
+  ctx.font = `500 13px ${FONT}`
+  ctx.fillText(
+    s.mode === 'perHead' ? 'Split per person' : 'Split equally',
+    PAD,
+    y + 28,
+  )
+
   y += 44
 
   // Stats row: Total spent / Equal share / Participants.
@@ -156,6 +165,12 @@ export function drawSettlementCanvas(s: Settlement): HTMLCanvasElement {
     ctx.fillStyle = C.ink
     ctx.font = `600 16px ${FONT}`
     ctx.fillText(b.name, PAD, y + 24)
+    if (s.mode === 'perHead' && b.members > 1) {
+      const nameW = ctx.measureText(b.name).width
+      ctx.fillStyle = C.muted
+      ctx.font = `600 14px ${FONT}`
+      ctx.fillText(` (${b.members})`, PAD + nameW, y + 24)
+    }
 
     ctx.fillStyle = C.muted
     ctx.font = `400 12px ${FONT}`

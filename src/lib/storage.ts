@@ -10,7 +10,15 @@ export function loadTrip(): Trip {
   try {
     const raw = localStorage.getItem(KEY)
     if (!raw) return emptyTrip
-    return { ...emptyTrip, ...(JSON.parse(raw) as Partial<Trip>) }
+    const parsed = { ...emptyTrip, ...(JSON.parse(raw) as Partial<Trip>) }
+    // Backfill member counts for trips saved before per-head splitting existed.
+    return {
+      ...parsed,
+      participants: parsed.participants.map((p) => ({
+        ...p,
+        members: p.members ?? 1,
+      })),
+    }
   } catch {
     return emptyTrip
   }

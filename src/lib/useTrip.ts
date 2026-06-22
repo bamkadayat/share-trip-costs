@@ -15,12 +15,21 @@ export function useTrip() {
     saveTrip(trip)
   }, [trip])
 
-  const addParticipant = (type: ParticipantType, name: string) =>
+  const addParticipant = (
+    type: ParticipantType,
+    name: string,
+    members = 1,
+  ) =>
     setTrip((t) => ({
       ...t,
       participants: [
         ...t.participants,
-        { id: uid(), type, name: name.trim() },
+        {
+          id: uid(),
+          type,
+          name: name.trim(),
+          members: type === 'family' ? Math.max(1, Math.floor(members)) : 1,
+        },
       ],
     }))
 
