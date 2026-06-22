@@ -77,11 +77,11 @@ export default function ResultsPanel({ settlement }: Props) {
           <span className="stat__value">{formatNOK(total)}</span>
         </div>
         <div className="stat">
-          <span className="stat__label">Equal share</span>
+          <span className="stat__label">Per person</span>
           <span className="stat__value">{formatNOK(share)}</span>
         </div>
         <div className="stat">
-          <span className="stat__label">Participants</span>
+          <span className="stat__label">People</span>
           <span className="stat__value">{unitCount}</span>
         </div>
       </div>
@@ -97,14 +97,15 @@ export default function ResultsPanel({ settlement }: Props) {
                 b.net > 0.005 ? 'gets' : b.net < -0.005 ? 'owes' : 'even'
               return (
                 <li key={b.id} className="balance">
-                  <div className="balance__who">
+                  <span className="balance__who">
                     <span className="balance__name">{b.name}</span>
-                    <span className="balance__sub">{b.subtitle}</span>
-                  </div>
-                  <span className="balance__paid">paid {formatNOK(b.paid)}</span>
+                    <span className="balance__paid">
+                      paid {formatNOK(b.paid)}
+                    </span>
+                  </span>
                   <span className={`balance__net balance__net--${status}`}>
                     {status === 'gets' && `gets back ${formatNOK(b.net)}`}
-                    {status === 'owes' && `should pay ${formatNOK(-b.net)}`}
+                    {status === 'owes' && `owes ${formatNOK(-b.net)}`}
                     {status === 'even' && 'settled'}
                   </span>
                 </li>

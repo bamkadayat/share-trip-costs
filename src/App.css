@@ -95,9 +95,11 @@ html {
 
 .card__title {
   margin: 0 0 16px;
-  font-size: 18px;
+  font-size: 13px;
   font-weight: 700;
-  color: var(--c-navy);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
 }
 
 /* Stick the results alongside the form only on the two-column layout. */
@@ -170,6 +172,10 @@ html {
 .btn--sm {
   padding: 7px 12px;
   font-size: 13px;
+}
+
+.btn--block {
+  width: 100%;
 }
 
 .btn:disabled {
@@ -289,36 +295,64 @@ html {
 }
 
 /* ---- Expenses ---- */
+.expense-block {
+  margin-top: 18px;
+}
+
+.form-label {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
 .expense-form {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
+.select {
+  flex: 1;
+  cursor: pointer;
+  padding-right: 28px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%235b7384' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
 .expense {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 0;
+  padding: 12px 0;
   border-top: 1px solid var(--border);
 }
 
 .expense__main {
   flex: 1;
   min-width: 0;
-  display: flex;
-  flex-direction: column;
 }
 
-.expense__desc {
-  flex: 1;
-  min-width: 0;
-  font-weight: 600;
+.expense__who {
+  font-weight: 700;
+  color: var(--c-navy);
+}
+
+.expense__note {
+  color: var(--muted);
 }
 
 .expense__amount {
   font-weight: 700;
-  color: var(--c-primary-dark);
+  color: var(--text);
+}
+
+.expense .icon-btn {
+  color: var(--bad);
 }
 
 /* ---- Results ---- */
@@ -397,16 +431,14 @@ html {
   flex: 1;
   min-width: 0;
   display: flex;
-  flex-direction: column;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 10px;
 }
 
 .balance__name {
-  font-weight: 600;
-}
-
-.balance__sub {
-  font-size: 12px;
-  color: var(--muted);
+  font-weight: 700;
+  color: var(--c-navy);
 }
 
 .balance__paid {
@@ -426,7 +458,7 @@ html {
 }
 
 .balance__net--owes {
-  color: var(--bad);
+  color: var(--text);
 }
 
 .balance__net--even {
@@ -449,7 +481,7 @@ html {
 }
 
 .transfer__arrow {
-  color: var(--c-accent);
+  color: var(--good);
   font-weight: 700;
 }
 
@@ -460,7 +492,7 @@ html {
 
 .transfer__amount {
   font-weight: 750;
-  color: var(--c-primary-dark);
+  color: var(--good);
 }
 
 /* ---- Participants ---- */
@@ -542,8 +574,8 @@ html {
 }
 
 .input--amount {
-  max-width: 110px;
-  flex: 0 0 auto;
+  flex: 1;
+  min-width: 0;
 }
 
 .field-error {
