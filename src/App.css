@@ -277,6 +277,20 @@ html {
   font-weight: 500;
 }
 
+.chip__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: rgba(0, 100, 148, 0.15);
+  color: var(--c-navy);
+  font-size: 11px;
+  font-weight: 700;
+}
+
 .chip__x {
   border: none;
   background: var(--surface-2);
@@ -304,6 +318,18 @@ html {
   font-size: 13px;
   font-weight: 600;
   color: var(--muted);
+}
+
+.form-hint {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.input--members {
+  flex: 0 0 auto;
+  width: 96px;
+  min-width: 0;
 }
 
 .expense-form {
@@ -390,6 +416,22 @@ html {
   color: #fff;
 }
 
+/* Full-width segmented tabs (used to pick the split mode). */
+.toggle--full {
+  display: flex;
+  width: 100%;
+  margin-top: 18px;
+}
+
+.toggle--full .toggle__btn {
+  flex: 1;
+  text-align: center;
+}
+
+.toggle-hint {
+  margin: 8px 0 0;
+}
+
 .stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -439,6 +481,11 @@ html {
 .balance__name {
   font-weight: 700;
   color: var(--c-navy);
+}
+
+.balance__members {
+  color: var(--muted);
+  font-weight: 600;
 }
 
 .balance__paid {

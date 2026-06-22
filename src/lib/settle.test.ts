@@ -2,15 +2,19 @@ import { describe, expect, it } from 'vitest'
 import { computeSettlement, type Settlement } from './settle'
 import type { Trip } from '../types'
 
+// A participant entry is [name, type] or [name, type, members].
+type P = [string, 'person' | 'family'] | [string, 'person' | 'family', number]
+
 function trip(
-  participants: Array<[string, 'person' | 'family']>,
+  participants: P[],
   expenses: Array<[string, number]>,
 ): Trip {
   return {
-    participants: participants.map(([name, type], i) => ({
+    participants: participants.map(([name, type, members], i) => ({
       id: `p${i}`,
       name,
       type,
+      members: members ?? 1,
     })),
     expenses: expenses.map(([name, amount], i) => {
       const pid = participants.findIndex(([n]) => n === name)
@@ -171,6 +175,94 @@ describe('computeSettlement', () => {
     )
     expect(s.balances.every((b) => b.net === 0)).toBe(true)
     expect(s.transfers).toHaveLength(0)
+    expectInvariants(s)
+  })
+
+  it("defaults to equal split when no mode is given", () => {
+    const s = computeSettlement(
+      trip(
+        [
+          ['Ola', 'person'],
+          ['Hansen', 'family', 4],
+        ],
+        [['Ola', 1000]],
+      ),
+    )
+    // Equal mode ignores member count: 2 units, 500 each.
+    expect(s.mode).toBe('equal')
+    expect(s.share).toBe(500)
+    expect(s.unitCount).toBe(2)
+    expectInvariants(s)
+  })
+})
+
+describe('computeSettlement — per-head split', () => {
+  it('splits by the number of people (family of 4 + single person)', () => {
+    const s = computeSettlement(
+      trip(
+        [
+          ['Hansen', 'family', 4],
+          ['Solo', 'person'],
+        ],
+        [
+          ['Hansen', 5000],
+          ['Solo', 1000],
+        ],
+      ),
+      'perHead',
+    )
+    // Total 6000 over 5 heads = 1200 per head.
+    expect(s.total).toBe(6000)
+    expect(s.unitCount).toBe(5)
+    expect(s.share).toBe(1200)
+    // Family owes 4 × 1200 = 4800, paid 5000 → gets back 200.
+    expect(s.balances[0].net).toBe(200)
+    // Single owes 1200, paid 1000 → owes 200.
+    expect(s.balances[1].net).toBe(-200)
+    expect(s.transfers).toEqual([
+      expect.objectContaining({
+        fromName: 'Solo',
+        toName: 'Hansen',
+        amount: 200,
+      }),
+    ])
+    expectInvariants(s)
+  })
+
+  it('charges a single person less than a larger family', () => {
+    const s = computeSettlement(
+      trip(
+        [
+          ['BigFam', 'family', 4],
+          ['Solo', 'person'],
+        ],
+        [['BigFam', 5000]],
+      ),
+      'perHead',
+    )
+    const big = s.balances.find((b) => b.name === 'BigFam')!
+    const solo = s.balances.find((b) => b.name === 'Solo')!
+    expect(big.share).toBe(4000) // 4 heads
+    expect(solo.share).toBe(1000) // 1 head
+    expect(solo.share).toBeLessThan(big.share)
+    expectInvariants(s)
+  })
+
+  it('keeps øre exact when heads do not divide the total (100 / 7)', () => {
+    const s = computeSettlement(
+      trip(
+        [
+          ['Fam', 'family', 4],
+          ['A', 'person'],
+          ['B', 'person'],
+          ['C', 'person'],
+        ],
+        [['A', 100]],
+      ),
+      'perHead',
+    )
+    expect(s.total).toBe(100)
+    expect(s.unitCount).toBe(7)
     expectInvariants(s)
   })
 })

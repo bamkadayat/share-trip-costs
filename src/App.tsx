@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import ParticipantsPanel from './components/ParticipantsPanel'
 import ResultsPanel from './components/ResultsPanel'
 import ConfirmDialog from './components/ConfirmDialog'
-import { computeSettlement } from './lib/settle'
+import { computeSettlement, type SplitMode } from './lib/settle'
 import { useTrip } from './lib/useTrip'
 import './App.css'
 
@@ -16,7 +16,11 @@ export default function App() {
     reset,
   } = useTrip()
 
-  const settlement = useMemo(() => computeSettlement(trip), [trip])
+  const [mode, setMode] = useState<SplitMode>('equal')
+  const settlement = useMemo(
+    () => computeSettlement(trip, mode),
+    [trip, mode],
+  )
 
   const [confirmOpen, setConfirmOpen] = useState(false)
 
@@ -54,7 +58,11 @@ export default function App() {
         </div>
 
         <div className="app__col">
-          <ResultsPanel settlement={settlement} />
+          <ResultsPanel
+            settlement={settlement}
+            mode={mode}
+            onModeChange={setMode}
+          />
         </div>
       </div>
 

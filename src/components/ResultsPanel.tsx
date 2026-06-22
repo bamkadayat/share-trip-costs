@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { formatNOK, type Settlement } from '../lib/settle'
+import { formatNOK, type Settlement, type SplitMode } from '../lib/settle'
 import {
   canShareSettlementImage,
   downloadSettlementImage,
@@ -8,10 +8,17 @@ import {
 
 interface Props {
   settlement: Settlement
+  mode: SplitMode
+  onModeChange: (mode: SplitMode) => void
 }
 
-export default function ResultsPanel({ settlement }: Props) {
+export default function ResultsPanel({
+  settlement,
+  mode,
+  onModeChange,
+}: Props) {
   const { total, share, unitCount, balances, transfers } = settlement
+  const perHead = mode === 'perHead'
   const [busy, setBusy] = useState<null | 'download' | 'share'>(null)
   const [error, setError] = useState<string | null>(null)
   const canShare = canShareSettlementImage()
@@ -71,6 +78,28 @@ export default function ResultsPanel({ settlement }: Props) {
       </div>
       {error && <p className="field-error">{error}</p>}
 
+      <div className="toggle toggle--full">
+        <button
+          type="button"
+          className={`toggle__btn${!perHead ? ' is-active' : ''}`}
+          onClick={() => onModeChange('equal')}
+        >
+          Split equally
+        </button>
+        <button
+          type="button"
+          className={`toggle__btn${perHead ? ' is-active' : ''}`}
+          onClick={() => onModeChange('perHead')}
+        >
+          Per person
+        </button>
+      </div>
+      <p className="muted toggle-hint">
+        {perHead
+          ? 'Cost is split per head — a family of 4 pays 4 shares.'
+          : 'Cost is split equally — each family or person pays one share.'}
+      </p>
+
       <div className="stats">
         <div className="stat">
           <span className="stat__label">Total spent</span>
@@ -98,7 +127,12 @@ export default function ResultsPanel({ settlement }: Props) {
               return (
                 <li key={b.id} className="balance">
                   <span className="balance__who">
-                    <span className="balance__name">{b.name}</span>
+                    <span className="balance__name">
+                      {b.name}
+                      {perHead && b.members > 1 && (
+                        <span className="balance__members"> ({b.members})</span>
+                      )}
+                    </span>
                     <span className="balance__paid">
                       paid {formatNOK(b.paid)}
                     </span>
