@@ -23,17 +23,52 @@ export default function ParticipantsPanel({
   const [type, setType] = useState<ParticipantType>('person')
   const [name, setName] = useState('')
 
+  // Shared "add an expense" form.
+  const [payerId, setPayerId] = useState('')
+  const [amount, setAmount] = useState('')
+  const [description, setDescription] = useState('')
+  const [error, setError] = useState('')
+
   const submitParticipant = () => {
     if (!name.trim()) return
     addParticipant(type, name)
     setName('')
   }
 
+  const submitExpense = () => {
+    const payer = payerId || participants[0]?.id || ''
+    if (!payer) {
+      setError('Add a person first.')
+      return
+    }
+    const value = Number(amount)
+    if (amount.trim() === '' || !Number.isFinite(value)) {
+      setError('Enter an amount.')
+      return
+    }
+    if (value < MIN_AMOUNT) {
+      setError('Amount can’t be negative.')
+      return
+    }
+    if (value > MAX_AMOUNT) {
+      setError(`Max ${formatNOK(MAX_AMOUNT)} per expense.`)
+      return
+    }
+    addExpense(payer, value, description)
+    setAmount('')
+    setDescription('')
+    setError('')
+  }
+
+  const nameById = new Map(participants.map((p) => [p.id, p.name]))
+  const orderedExpenses = [...expenses].sort((a, b) => a.createdAt - b.createdAt)
+  const selectedPayer = payerId || participants[0]?.id || ''
+
   return (
     <section className="card">
-      <h2 className="card__title">Participants &amp; expenses</h2>
+      <h2 className="card__title">People &amp; expenses</h2>
 
-      {/* Step 1: add a family or person */}
+      {/* Step 1: add people */}
       <div className="add-participant">
         <div className="toggle">
           <button
@@ -52,7 +87,9 @@ export default function ParticipantsPanel({
         <div className="row row--tight">
           <input
             className="input"
-            placeholder={type === 'family' ? 'Family name (e.g. Hansen)' : 'Person name (e.g. Ola)'}
+            placeholder={
+              type === 'family' ? 'Family name, e.g. Hansen' : 'Name, e.g. Ola'
+            }
             value={name}
             onChange={(e) => setName(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && submitParticipant()}
@@ -61,142 +98,109 @@ export default function ParticipantsPanel({
             Add
           </button>
         </div>
-      </div>
 
-      {/* Step 2: each participant, with their expenses */}
-      {participants.length === 0 ? (
-        <p className="muted">
-          Add a family or person to start. No expenses counts as 0.
-        </p>
-      ) : (
-        <ul className="participant-list">
-          {participants.map((p) => (
-            <ParticipantCard
-              key={p.id}
-              participant={p}
-              expenses={expenses.filter((e) => e.participantId === p.id)}
-              onRemove={() => removeParticipant(p.id)}
-              onAddExpense={(amount, desc) => addExpense(p.id, amount, desc)}
-              onRemoveExpense={removeExpense}
-            />
-          ))}
-        </ul>
-      )}
-    </section>
-  )
-}
-
-interface CardProps {
-  participant: Participant
-  expenses: Expense[]
-  onRemove: () => void
-  onAddExpense: (amount: number, description: string) => void
-  onRemoveExpense: (id: string) => void
-}
-
-function ParticipantCard({
-  participant,
-  expenses,
-  onRemove,
-  onAddExpense,
-  onRemoveExpense,
-}: CardProps) {
-  const [amount, setAmount] = useState('')
-  const [description, setDescription] = useState('')
-  const [error, setError] = useState('')
-
-  const total = expenses.reduce((sum, e) => sum + e.amount, 0)
-
-  const submit = () => {
-    const value = Number(amount)
-    if (amount.trim() === '' || !Number.isFinite(value)) {
-      setError('Enter an amount.')
-      return
-    }
-    if (value < MIN_AMOUNT) {
-      setError('Amount can’t be negative.')
-      return
-    }
-    if (value > MAX_AMOUNT) {
-      setError(`Max ${formatNOK(MAX_AMOUNT)} per expense.`)
-      return
-    }
-    onAddExpense(value, description)
-    setAmount('')
-    setDescription('')
-    setError('')
-  }
-
-  return (
-    <li className="participant">
-      <div className="participant__head">
-        <div className="participant__title">
-          <span className="participant__name">{participant.name}</span>
-          <span className={`badge badge--${participant.type}`}>
-            {participant.type === 'family' ? 'Family' : 'Person'}
-          </span>
-        </div>
-        <div className="participant__total">
-          <span className="muted">spent</span> {formatNOK(total)}
-          <button
-            className="icon-btn"
-            aria-label={`Remove ${participant.name}`}
-            onClick={onRemove}
-          >
-            ✕
-          </button>
-        </div>
-      </div>
-
-      {expenses.length > 0 && (
-        <ul className="expense-list">
-          {[...expenses]
-            .sort((a, b) => b.createdAt - a.createdAt)
-            .map((e) => (
-              <li key={e.id} className="expense">
-                <span className="expense__desc">
-                  {e.description || 'Expense'}
-                </span>
-                <span className="expense__amount">{formatNOK(e.amount)}</span>
+        {participants.length > 0 && (
+          <ul className="member-list">
+            {participants.map((p) => (
+              <li key={p.id} className="chip">
+                {p.name}
                 <button
-                  className="icon-btn"
-                  aria-label="Remove expense"
-                  onClick={() => onRemoveExpense(e.id)}
+                  className="chip__x"
+                  aria-label={`Remove ${p.name}`}
+                  onClick={() => removeParticipant(p.id)}
                 >
                   ✕
                 </button>
               </li>
             ))}
-        </ul>
-      )}
-
-      <div className="expense-add">
-        <input
-          className="input input--sm"
-          placeholder="What for? (optional)"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && submit()}
-        />
-        <input
-          className="input input--sm input--amount"
-          type="number"
-          min={MIN_AMOUNT}
-          max={MAX_AMOUNT}
-          step="0.01"
-          placeholder="kr"
-          value={amount}
-          onChange={(e) => {
-            setAmount(e.target.value)
-            if (error) setError('')
-          }}
-          onKeyDown={(e) => e.key === 'Enter' && submit()}
-        />
-        <button className="btn btn--ghost" onClick={submit}>
-          + Expense
-        </button>
+          </ul>
+        )}
       </div>
-      {error && <p className="field-error">{error}</p>}
-    </li>
+
+      {/* Step 2: log an expense against a person */}
+      <div className="expense-block">
+        <p className="form-label">Add an expense</p>
+        <div className="expense-form">
+          <div className="row row--tight">
+            <select
+              className="input select"
+              value={selectedPayer}
+              onChange={(e) => setPayerId(e.target.value)}
+              disabled={participants.length === 0}
+            >
+              {participants.length === 0 ? (
+                <option value="">Add a person first</option>
+              ) : (
+                participants.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))
+              )}
+            </select>
+            <input
+              className="input input--amount"
+              type="number"
+              min={MIN_AMOUNT}
+              max={MAX_AMOUNT}
+              step="0.01"
+              placeholder="Amount (kr)"
+              value={amount}
+              onChange={(e) => {
+                setAmount(e.target.value)
+                if (error) setError('')
+              }}
+              onKeyDown={(e) => e.key === 'Enter' && submitExpense()}
+              disabled={participants.length === 0}
+            />
+          </div>
+          <input
+            className="input"
+            placeholder="What for? (optional)"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && submitExpense()}
+            disabled={participants.length === 0}
+          />
+          <button
+            className="btn btn--primary btn--block"
+            onClick={submitExpense}
+            disabled={participants.length === 0}
+          >
+            Add expense
+          </button>
+        </div>
+        {error && <p className="field-error">{error}</p>}
+      </div>
+
+      {/* Logged expenses */}
+      {orderedExpenses.length > 0 && (
+        <>
+          <h3 className="subhead">Logged expenses</h3>
+          <ul className="expense-list">
+            {orderedExpenses.map((e) => (
+              <li key={e.id} className="expense">
+                <span className="expense__main">
+                  <span className="expense__who">
+                    {nameById.get(e.participantId) ?? 'Unknown'}
+                  </span>
+                  {e.description && (
+                    <span className="expense__note"> · {e.description}</span>
+                  )}
+                </span>
+                <span className="expense__amount">{formatNOK(e.amount)}</span>
+                <button
+                  className="icon-btn"
+                  aria-label="Remove expense"
+                  onClick={() => removeExpense(e.id)}
+                >
+                  ✕
+                </button>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </section>
   )
 }

@@ -28,7 +28,7 @@ export default function App() {
         <div>
           <h1 className="app__title">Share trip costs</h1>
           <p className="app__tagline">
-            Add each family or person, log expenses, see who owes whom.
+            Add people, log who paid for what, see who owes whom.
           </p>
         </div>
         {hasData && (

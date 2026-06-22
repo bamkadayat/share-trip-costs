@@ -113,8 +113,8 @@ export function drawSettlementCanvas(s: Settlement): HTMLCanvasElement {
   // Stats row: Total spent / Equal share / Participants.
   const stats: Array<[string, string]> = [
     ['TOTAL SPENT', formatNOK(s.total)],
-    ['EQUAL SHARE', formatNOK(s.share)],
-    ['PARTICIPANTS', String(s.unitCount)],
+    ['PER PERSON', formatNOK(s.share)],
+    ['PEOPLE', String(s.unitCount)],
   ]
   const gap = 12
   const boxW = (CONTENT_W - gap * 2) / 3
@@ -159,16 +159,16 @@ export function drawSettlementCanvas(s: Settlement): HTMLCanvasElement {
 
     ctx.fillStyle = C.muted
     ctx.font = `400 12px ${FONT}`
-    ctx.fillText(`${b.subtitle} · paid ${formatNOK(b.paid)}`, PAD, y + 42)
+    ctx.fillText(`paid ${formatNOK(b.paid)}`, PAD, y + 42)
 
     const netText =
       status === 'gets'
         ? `gets back ${formatNOK(net)}`
         : status === 'owes'
-          ? `should pay ${formatNOK(-net)}`
+          ? `owes ${formatNOK(-net)}`
           : 'settled'
     ctx.fillStyle =
-      status === 'gets' ? C.good : status === 'owes' ? C.bad : C.muted
+      status === 'gets' ? C.good : status === 'owes' ? C.ink : C.muted
     ctx.font = `700 15px ${FONT}`
     ctx.textAlign = 'right'
     ctx.fillText(netText, W - PAD, y + 32)
@@ -201,7 +201,7 @@ export function drawSettlementCanvas(s: Settlement): HTMLCanvasElement {
       ctx.fillText(t.fromName, PAD + 14, midY)
       const fromW = ctx.measureText(t.fromName).width
 
-      ctx.fillStyle = C.accent
+      ctx.fillStyle = C.good
       ctx.font = `700 15px ${FONT}`
       ctx.fillText('→', PAD + 14 + fromW + 8, midY)
       const arrowW = ctx.measureText('→').width
@@ -210,7 +210,7 @@ export function drawSettlementCanvas(s: Settlement): HTMLCanvasElement {
       ctx.font = `600 15px ${FONT}`
       ctx.fillText(t.toName, PAD + 14 + fromW + 8 + arrowW + 8, midY)
 
-      ctx.fillStyle = C.primaryDark
+      ctx.fillStyle = C.good
       ctx.font = `750 16px ${FONT}`
       ctx.textAlign = 'right'
       ctx.fillText(formatNOK(t.amount), W - PAD - 14, midY)
@@ -239,7 +239,7 @@ function drawFooter(ctx: CanvasRenderingContext2D, H: number) {
   ctx.fillStyle = C.muted
   ctx.font = `500 12px ${FONT}`
   ctx.textAlign = 'center'
-  ctx.fillText('Made with Share trip costs', W / 2, H - PAD)
+  ctx.fillText('Made with Share trip costs · Bam Kadayat', W / 2, H - PAD)
   ctx.textAlign = 'left'
 }
 
