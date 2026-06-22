@@ -167,6 +167,16 @@ html {
   white-space: nowrap;
 }
 
+.btn--sm {
+  padding: 7px 12px;
+  font-size: 13px;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 .btn--primary {
   background: var(--c-navy);
   color: #fff;

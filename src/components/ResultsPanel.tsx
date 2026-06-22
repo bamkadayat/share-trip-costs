@@ -1,4 +1,10 @@
+import { useState } from 'react'
 import { formatNOK, type Settlement } from '../lib/settle'
+import {
+  canShareSettlementImage,
+  downloadSettlementImage,
+  shareSettlementImage,
+} from '../lib/settlementImage'
 
 interface Props {
   settlement: Settlement
@@ -6,10 +12,64 @@ interface Props {
 
 export default function ResultsPanel({ settlement }: Props) {
   const { total, share, unitCount, balances, transfers } = settlement
+  const [busy, setBusy] = useState<null | 'download' | 'share'>(null)
+  const [error, setError] = useState<string | null>(null)
+  const canShare = canShareSettlementImage()
+  const canExport = balances.length > 0
+
+  async function handleDownload() {
+    setError(null)
+    setBusy('download')
+    try {
+      await downloadSettlementImage(settlement)
+    } catch {
+      setError('Could not create the image. Please try again.')
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  async function handleShare() {
+    setError(null)
+    setBusy('share')
+    try {
+      const shared = await shareSettlementImage(settlement)
+      if (!shared) await downloadSettlementImage(settlement)
+    } catch {
+      setError('Could not share the image. Please try again.')
+    } finally {
+      setBusy(null)
+    }
+  }
 
   return (
     <section className="card card--results">
-      <h2 className="card__title">Settlement</h2>
+      <div className="results__head">
+        <h2 className="card__title">Settlement</h2>
+        {canExport && (
+          <div className="row row--tight">
+            <button
+              type="button"
+              className="btn btn--ghost btn--sm"
+              onClick={handleDownload}
+              disabled={busy !== null}
+            >
+              {busy === 'download' ? 'Saving…' : '⬇ Download'}
+            </button>
+            {canShare && (
+              <button
+                type="button"
+                className="btn btn--primary btn--sm"
+                onClick={handleShare}
+                disabled={busy !== null}
+              >
+                {busy === 'share' ? 'Sharing…' : '📤 Share'}
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+      {error && <p className="field-error">{error}</p>}
 
       <div className="stats">
         <div className="stat">
